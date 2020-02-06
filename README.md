@@ -25,8 +25,9 @@ The first thing we do is load the data, which is taken from https://www.kaggle.c
 After loading the dataset we explore the mood dataset where we find:  
 ![a](/plots/common_positive.png)  
 A couple of graphs outputting the most common negative/neutral/positive words in the dataset
-
-We then find the counts of each mood in the dataset:  
+We fit a classifer on this data and get a confusion matrix that looks like this for the predictions:  
+![a](/plots/confusion_mtx.png)  
+Obviously there is something wrong when some moods have a 0% chance of being predicted so we then find the counts of each mood in the dataset:  
 ![a](/plots/countsOfMoods.png)  
 The dataset is obviously inbalanced so we do a couple things to balanced the dataset.  
 First we will group a couple of the moods together, turning anger and hate into anger, enthusiasm and fun into joy, and add boredom and empty into sadness  
