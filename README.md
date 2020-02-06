@@ -25,7 +25,7 @@ The first thing we do is load the data, which is taken from https://www.kaggle.c
 After loading the dataset we explore the mood dataset where we find:  
 ![a](/plots/common_positive.png)  
 A couple of graphs outputting the most common negative/neutral/positive words in the dataset
-We fit a classifer on this data and get a confusion matrix that looks like this for the predictions:  
+We fit a classifer on this data which gets an accuracy of 33%, recall of 16%, and precision of 27% as well as a confusion matrix that looks like this for the predictions:  
 ![a](/plots/confusion_mtx.png)  
 Obviously there is something wrong when some moods have a 0% chance of being predicted so we then find the counts of each mood in the dataset:  
 ![a](/plots/countsOfMoods.png)  
@@ -42,4 +42,4 @@ We train a logistic regression model on this data and get a roc curve that looks
 When using logistic regression on the polarity data we get an accuracy of about 77%, recall of about 80%, and precision of about 76%.  
 
 After creating both a model to determine the polarity and then 2 models to determine the mood after the polarity is determined, we can run the classifier.  
-The classifier outputs an accuracy and recall of about 40% and precision of about 37%. If we increase the number of moods it can predict it outputs an accuracy of about 50% when predicting 2 moods.  
+The classifier outputs an accuracy and recall of about 40% and precision of about 37%, showing we have successfully doubled the effectiveness of our predictor. If we increase the number of moods it can predict it outputs an accuracy of about 50% when predicting 2 moods.  
