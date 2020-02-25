@@ -176,24 +176,36 @@ class MoodClassifier2(object):
 
     def fitRNN(self, dataPolar, polarContent, polarLabel, dataPositive, dataNegative, 
                sentimentContent, sentimentLabel):
+        
+        print("start")
         self.tfidfPolar, Xpolar = self.createTFIDF(dataPolar, polarContent, True)
         ypolar = self.getLabel(dataPolar, polarLabel)
         self.polarityClassifier = self.createRegressor(Xpolar, ypolar)
+        
+        print("finished polarity")
 
         cleanData(dataPositive, sentimentContent)
         cleanData(dataNegative, sentimentContent)
+        
+        print("finished cleaning")
 
         textVectorP = createTokenizer(dataPositive[sentimentContent].values)
         textVectorN = createTokenizer(dataNegative[sentimentContent].values)
+        
+        print("finished textVectors")
 
         self.modelP = createRNNModel(textVectorP.shape[1])
         self.modelN = createRNNModel(textVectorN.shape[1])
 
         yP = pd.get_dummies(dataPositive[sentimentLabel]).values
         yN = pd.get_dummies(dataNegative[sentimentLabel]).values
+        
+        print("finished making dummies")
 
         self.modelP.fit(textVectorP, yP, epochs = 10, batch_size = 32, verbose = 1)
         self.modelN.fit(textVectorN, yN, epochs = 10, batch_size = 32, verbose = 1)
+        
+        print("finished fitting")
 
         self.positiveSent = sorted(dataPositive[sentimentLabel].unique())
         self.negativeSent = sorted(dataNegative[sentimentLabel].unique())
@@ -213,10 +225,10 @@ class MoodClassifier2(object):
         for idx in range(len(preds)):
             if preds[idx] == 4: #value of positives
                 pred = self.modelP.predict(textVector[idx])
-                moodPredictions.append(self.positiveSent[np.argmax(pred)]))
+                moodPredictions.append(self.positiveSent[np.argmax(pred)])
             else:
                 pred = self.modelN.predict(textVector[idx])
-                moodPredictions.append(self.negativeSent[np.argmax(pred)]))
+                moodPredictions.append(self.negativeSent[np.argmax(pred)])
         
         return moodPredictions
 
