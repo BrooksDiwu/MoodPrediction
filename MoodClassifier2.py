@@ -175,7 +175,7 @@ class MoodClassifier2(object):
         return model
 
     def fitRNN(self, dataPolar, polarContent, polarLabel, dataPositive, dataNegative, 
-               sentimentContent, sentimentLabel)
+               sentimentContent, sentimentLabel):
         self.tfidfPolar, Xpolar = self.createTFIDF(dataPolar, polarContent, True)
         ypolar = self.getLabel(dataPolar, polarLabel)
         self.polarityClassifier = self.createRegressor(Xpolar, ypolar)
