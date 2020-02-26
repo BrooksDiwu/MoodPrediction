@@ -156,7 +156,7 @@ class MoodClassifier2(object):
         tokenizer = Tokenizer(num_words = 5000, split = " ")
         tokenizer.fit_on_texts(text)
         textVector = tokenizer.texts_to_sequences(text)
-        textVector = pad_sequences(textVector, 500)
+        textVector = pad_sequences(textVector, 250)
         return textVector
     
     def cleanData(self, data, sentimentContent):
