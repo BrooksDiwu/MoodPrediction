@@ -14,7 +14,7 @@ from nltk import pos_tag
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense, LSTM, Embedding, Dropout
+from tensorflow.keras.layers import Dense, LSTM, Embedding, Dropout, SpatialDropout1D
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
@@ -121,7 +121,8 @@ class MoodClassifier2(object):
         return data[label]
 
     def createRegressor(self, X,y):
-        lg = LogisticRegression(max_iter = 1000)
+        lg = LogisticRegression(max_iter = 5000)
+        print("before fit")
         lg.fit(X,y)
         return lg
 
@@ -154,24 +155,25 @@ class MoodClassifier2(object):
     def createTokenizer(self, text):
         tokenizer = Tokenizer(num_words = 5000, split = " ")
         tokenizer.fit_on_texts(text)
-        textVector = tokenizer.texts_to_sequence(text)
-        textVector = pad_sequences(textVector)
+        textVector = tokenizer.texts_to_sequences(text)
+        textVector = pad_sequences(textVector, 500)
         return textVector
     
     def cleanData(self, data, sentimentContent):
-        data[sentimentContent] = cleanText(data[sentimentContent])
-        data[sentimentContent] = tokenize(data[sentimentContent])
+        data[sentimentContent] = self.cleanText(data[sentimentContent])
+        data[sentimentContent] = self.tokenize(data[sentimentContent], False)
         data[sentimentContent] = data[sentimentContent].apply(lambda x: " ".join(x))
         return self
     
     def createRNNModel(self, input_len):
         model = Sequential()
-        model.add(Embedding(10000, 256, input_length=input_len))
-        model.add(Dropout(0.1))
-        model.add(LSTM(256, return_sequences=True, dropout=0.1, recurrent_dropout=0.1))
-        model.add(LSTM(256, return_sequences=False, dropout=0.1, recurrent_dropout=0.1))
-        model.add(Dense(13, activation="softmax"))
+        model.add(Embedding(5000, 100, input_length=input_len))
+        model.add(SpatialDropout1D(0.2))
+        model.add(LSTM(100, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))
+        model.add(LSTM(100, return_sequences=False, dropout=0.2, recurrent_dropout=0.2))
+        model.add(Dense(5, activation="softmax"))
         model.compile(loss='categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
+        model.summary()
         return model
 
     def fitRNN(self, dataPolar, polarContent, polarLabel, dataPositive, dataNegative, 
@@ -180,30 +182,33 @@ class MoodClassifier2(object):
         print("start")
         self.tfidfPolar, Xpolar = self.createTFIDF(dataPolar, polarContent, True)
         ypolar = self.getLabel(dataPolar, polarLabel)
+        
+        print("creating polarity")
+        
         self.polarityClassifier = self.createRegressor(Xpolar, ypolar)
         
         print("finished polarity")
 
-        cleanData(dataPositive, sentimentContent)
-        cleanData(dataNegative, sentimentContent)
+        self.cleanData(dataPositive, sentimentContent)
+        self.cleanData(dataNegative, sentimentContent)
         
         print("finished cleaning")
 
-        textVectorP = createTokenizer(dataPositive[sentimentContent].values)
-        textVectorN = createTokenizer(dataNegative[sentimentContent].values)
+        textVectorP = self.createTokenizer(dataPositive[sentimentContent].values)
+        textVectorN = self.createTokenizer(dataNegative[sentimentContent].values)
         
         print("finished textVectors")
 
-        self.modelP = createRNNModel(textVectorP.shape[1])
-        self.modelN = createRNNModel(textVectorN.shape[1])
+        self.modelP = self.createRNNModel(textVectorP.shape[1])
+        self.modelN = self.createRNNModel(textVectorN.shape[1])
 
         yP = pd.get_dummies(dataPositive[sentimentLabel]).values
         yN = pd.get_dummies(dataNegative[sentimentLabel]).values
         
         print("finished making dummies")
 
-        self.modelP.fit(textVectorP, yP, epochs = 10, batch_size = 32, verbose = 1)
-        self.modelN.fit(textVectorN, yN, epochs = 10, batch_size = 32, verbose = 1)
+        self.modelP.fit(textVectorP, yP, epochs = 1, batch_size = 32, verbose = 1)
+        self.modelN.fit(textVectorN, yN, epochs = 1, batch_size = 32, verbose = 1)
         
         print("finished fitting")
 
