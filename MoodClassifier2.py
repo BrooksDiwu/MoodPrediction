@@ -17,6 +17,10 @@ from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Dense, LSTM, Embedding, Dropout, SpatialDropout1D
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+import pickle
+from MoodClassifier import MoodClassifier
+from PolarityClassifier import PolarityClassifier
+from operator import add
 
 class MoodClassifier2(object):
     def __init__(self):
@@ -126,37 +130,11 @@ class MoodClassifier2(object):
         lg.fit(X,y)
         return lg
 
-    def useTFIDF(self, data, contentCol, tfidf, encoded = False):
-        data['Tokens'] = self.tokenize(data[contentCol], encoded)
-        data['Tokens'] = data['Tokens'].apply(lambda x: ' '.join(x))
-        corpus = [row for row in data['Tokens']]
-        document_tfidf_matrix = tfidf.transform(corpus)
-        return document_tfidf_matrix
-
-    def splitPositiveNegative(self, data):
-        positiveS = ['enthusiasm', 'neutral', 'surprise', 'love', 'fun', 'happiness', 'relief']
-        negativeS = ['empty', 'sadness', 'neutral', 'worry', 'hate', 'boredom', 'anger']
-        dataP = data[data['sentiment'].isin(positiveS)]
-        dataN = data[data['sentiment'].isin(negativeS)]
-        dataP['Tokens'] = self.tokenize(dataP['content'], False)
-        dataN['Tokens'] = self.tokenize(dataN['content'], False)
-        return dataP, dataN
-
-    def getTopN(self, n, reg, X, moods):
-        probs = reg.predict_proba(X)
-        topN = []
-        for prob in probs:
-            best_N = list(reversed(np.argsort(prob)))[:n]
-            topN.append(best_N)
-        topN = np.array(topN)
-        topNpred = moods[topN]
-        return topNpred
-
     def createTokenizer(self, text):
-        tokenizer = Tokenizer(num_words = 5000, split = " ")
+        tokenizer = Tokenizer(num_words = 10000, split = " ")
         tokenizer.fit_on_texts(text)
         textVector = tokenizer.texts_to_sequences(text)
-        textVector = pad_sequences(textVector, 250)
+        textVector = pad_sequences(textVector, 120)
         return textVector
     
     def cleanData(self, data, sentimentContent):
@@ -167,14 +145,115 @@ class MoodClassifier2(object):
     
     def createRNNModel(self, input_len):
         model = Sequential()
-        model.add(Embedding(5000, 100, input_length=input_len))
+        model.add(Embedding(10000, 256, input_length=input_len))
         model.add(SpatialDropout1D(0.2))
-        model.add(LSTM(100, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))
-        model.add(LSTM(100, return_sequences=False, dropout=0.2, recurrent_dropout=0.2))
+        model.add(LSTM(256, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))
+        model.add(LSTM(256, return_sequences=False, dropout=0.2, recurrent_dropout=0.2))
         model.add(Dense(5, activation="softmax"))
         model.compile(loss='categorical_crossentropy', optimizer = 'adam', metrics = ['accuracy'])
         model.summary()
         return model
+
+    def fitRNNFastLoad(self, positiveModel, negativeModel):
+
+        with open('Logistic_model.pkl', 'rb') as f:
+            self.logisticModel = pickle.load(f)
+
+        with open('Logistic_polar_model.pkl', 'rb') as f:
+            self.polarityClassifier = pickle.load(f)
+        
+        self.modelP = load_model(positiveModel)
+        self.modelN = load_model(negativeModel)
+
+        self.sent = ['anger', 'happiness', 'joy', 'love', 'neutral', 'sadness', 'surprise', 'worry']
+        self.positiveSent = ['happiness', 'joy', 'love', 'neutral', 'surprise']
+        self.negativeSent = ['anger', 'neutral', 'sadness', 'surprise', 'worry']
+
+        return self 
+
+    def fitRNNLoad(self, dataPolar, polarContent, polarLabel, dataPositive, dataNegative, 
+               sentimentContent, sentimentLabel, positiveModel, negativeModel):
+
+        with open('Logistic_model.pkl', 'rb') as f:
+            self.logisticModel = pickle.load(f)
+
+
+        print("start")
+        # self.tfidfPolar, Xpolar = self.createTFIDF(dataPolar, polarContent, True)
+        # ypolar = self.getLabel(dataPolar, polarLabel)
+        
+        # print("creating polarity")
+        
+        # self.polarityClassifier = self.createRegressor(Xpolar, ypolar)
+        with open('Logistic_polar_model.pkl') as f:
+            self.polarClassifier = pickle.load(f)
+        
+        self.modelP = load_model(positiveModel)
+        self.modelN = load_model(negativeModel)
+
+        self.sent = ['anger', 'happiness', 'joy', 'love', 'neutral', 'sadness', 'surprise', 'worry']
+        self.positiveSent = ['happiness', 'joy', 'love', 'neutral', 'surprise']
+        self.negativeSent = ['anger', 'neutral', 'sadness', 'surprise', 'worry']
+        #self.positiveSent = ['joy', 'neutral', 'surprise', 'love', 'happiness']
+        #self.negativeSent = ['sadness', 'neutral', 'worry', 'surprise', 'anger']
+
+
+        return self 
+    
+    #takes in pandas series
+    def predict(self, X):
+        # tokens = self.tokenize(X, False)
+        # tokens = [' '.join(x) for x in tokens]
+        # corpus = [row for row in tokens]
+        # polarityMTX = self.tfidfPolar.transform(corpus)
+        # preds = self.polarityClassifier.predict(polarityMTX)
+        preds = self.polarityClassifier.predict(X)
+        moodPredictions = []
+        logisticPreds = self.logisticModel.predict_proba(X)
+        textVector = self.createTokenizer(X.values)
+
+        for idx in range(len(preds)):
+            if preds[idx] == 4: #value of positives
+                logistP = [0, logisticPreds[idx][0], logisticPreds[idx][1], logisticPreds[idx][2],
+                           logisticPreds[idx][3], 0, logisticPreds[idx][4], 0]
+                pred = self.modelP.predict(textVector[[idx]]) + logistP[idx]
+                moodPredictions.append(self.positiveSent[np.argmax(pred)])
+                #moodPredictions.append(pred)
+            else:
+                logistP = [logisticPreds[idx][0], 0, 0, 0, logisticPreds[idx][1], logisticPreds[idx][2],
+                           logisticPreds[idx][3], logisticPreds[idx][4]]
+                pred = self.modelN.predict(textVector[[idx]]) + logistP[idx]
+                moodPredictions.append(self.negativeSent[np.argmax(pred)])
+                #moodPredictions.append(pred)
+        
+        return moodPredictions
+
+    def predict(self, X):
+        # tokens = self.tokenize(X, False)
+        # tokens = [' '.join(x) for x in tokens]
+        # corpus = [row for row in tokens]
+        # polarityMTX = self.tfidfPolar.transform(corpus)
+        # preds = self.polarityClassifier.predict(polarityMTX)
+        preds = self.polarityClassifier.predict(X)
+        moodPredictions = []
+        logisticPreds = self.logisticModel.predict_proba(X)
+        textVector = self.createTokenizer(X.values)
+
+        for idx in range(len(preds)):
+            if preds[idx] == 4: #value of positives
+                logistP = [0, logisticPreds[idx][0], logisticPreds[idx][1], logisticPreds[idx][2],
+                           logisticPreds[idx][3], 0, logisticPreds[idx][4], 0]
+                pred = self.modelP.predict(textVector[[idx]]) + 10*logisticPreds[idx]
+                moodPredictions.append(self.positiveSent[np.argmax(pred)])
+                #moodPredictions.append(pred)
+            else:
+                logistP = [logisticPreds[idx][0], 0, 0, 0, logisticPreds[idx][1], logisticPreds[idx][2],
+                           logisticPreds[idx][3], logisticPreds[idx][4]]
+                pred = self.modelN.predict(textVector[[idx]]) + 10*logisticPreds[idx]
+                moodPredictions.append(self.negativeSent[np.argmax(pred)])
+                #moodPredictions.append(pred)
+        
+        return moodPredictions
 
     def fitRNN(self, dataPolar, polarContent, polarLabel, dataPositive, dataNegative, 
                sentimentContent, sentimentLabel):
@@ -216,59 +295,3 @@ class MoodClassifier2(object):
         self.negativeSent = sorted(dataNegative[sentimentLabel].unique())
 
         return self 
-    
-    #takes in pandas series
-    def predict(self, X):
-        tokens = self.tokenize(X, False)
-        tokens = [' '.join(x) for x in tokens]
-        corpus = [row for row in tokens]
-        polarityMTX = self.tfidfPolar.transform(corpus)
-        preds = self.polarityClassifier.predict(polarityMTX)
-        moodPredictions = []
-        textVector = createTokenizer(X.values)
-
-        for idx in range(len(preds)):
-            if preds[idx] == 4: #value of positives
-                pred = self.modelP.predict(textVector[idx])
-                moodPredictions.append(self.positiveSent[np.argmax(pred)])
-            else:
-                pred = self.modelN.predict(textVector[idx])
-                moodPredictions.append(self.negativeSent[np.argmax(pred)])
-        
-        return moodPredictions
-
-    def predictN(self, n, X, posMoods, negMoods):
-        tokens = self.tokenize(X, False)
-        tokens = [' '.join(x) for x in tokens]
-        corpus = [row for row in tokens]
-        polarityMTX = self.tfidfPolar.transform(corpus)
-        preds = self.polarityClassifier.predict(polarityMTX)
-        moodPredictions = []
-
-        for idx in range(len(preds)):
-            if preds[idx] == 4: #value of positives
-                mtx = self.tfidfPositive.transform([tokens[idx]])
-                moodPredictions.append(self.getTopN(n, self.positiveClassifier, mtx, posMoods))
-                #moodPredictions.append(self.positiveClassifier.predict(mtx)[0])
-            else:
-                mtx = self.tfidfNegative.transform([tokens[idx]])
-                moodPredictions.append(self.getTopN(n, self.negativeClassifier, mtx, negMoods))
-                #moodPredictions.append(self.negativeClassifier.predict(mtx)[0])
-        
-        return moodPredictions
-        
-    def score(self, X, y):
-        count = 0
-        preds = self.predict(X)
-        for idx in range(len(y)):
-            if y[idx] == preds[idx]:
-                count+=1
-        return count/len(y)
-
-    def nScore(self, X, y, n, posMoods, negMoods):
-        count = 0
-        preds = self.predictN(n, X, posMoods, negMoods)
-        for idx in range(len(y)):
-            if np.array(y)[idx] in preds[idx]:
-                count+=1
-        return count/len(y)

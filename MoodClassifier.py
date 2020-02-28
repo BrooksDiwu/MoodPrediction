@@ -219,6 +219,24 @@ class MoodClassifier(object):
                 #moodPredictions.append(self.negativeClassifier.predict(mtx)[0])
         
         return moodPredictions
+
+    def predict_proba(self, X):
+        tokens = self.tokenize(X, False)
+        tokens = [' '.join(x) for x in tokens]
+        corpus = [row for row in tokens]
+        polarityMTX = self.tfidfPolar.transform(corpus)
+        preds = self.polarityClassifier.predict(polarityMTX)
+        moodPredictions = []
+
+        for idx in range(len(preds)):
+            if preds[idx] == 4: #value of positives
+                mtx = self.tfidfPositive.transform([tokens[idx]])
+                moodPredictions.append(self.positiveClassifier.predict_proba(mtx))
+            else:
+                mtx = self.tfidfNegative.transform([tokens[idx]])
+                moodPredictions.append(self.negativeClassifier.predict_proba(mtx))
+                
+        return moodPredictions
         
     def score(self, X, y):
         count = 0
