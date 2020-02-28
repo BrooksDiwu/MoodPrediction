@@ -8,6 +8,14 @@ plt.style.use("fivethirtyeight")
 %matplotlib inline
 
 def groupMoods(mood):
+    '''
+    Groups similar moods
+
+    Parameters:
+    mood: String which is the mood
+
+    returns: String which is the mood grouped
+    '''
     if mood in ['enthusiasm','fun','relief']:
         return 'joy'
     elif mood in ['hate', 'anger']:
@@ -18,6 +26,15 @@ def groupMoods(mood):
         return mood
 
 def createBalancedTestSet(data, n):
+    '''
+    Balances the dataset by undersampling
+
+    Parameters:
+    data: DataFrame which inludes all the data
+    n: number of samples of each piece of data you want
+
+    returns: DataFrame of data with random values
+    '''
     rows = np.random.choice(data.index.values, n)
     return data.loc[rows]
 
@@ -27,6 +44,7 @@ if __name__ == '__main__':
     data['sentiment'] = data['sentiment'].apply(lambda x: groupMoods(x))
     data.to_csv('text_emotionBal.csv') #grouped moods
 
+    #getting all data of each mood
     sadness = data[data['sentiment']=='sadness']
     joy = data[data['sentiment']=='joy']
     neutral = data[data['sentiment']=='neutral']
@@ -36,6 +54,7 @@ if __name__ == '__main__':
     anger = data[data['sentiment']=='anger']
     happiness = data[data['sentiment']=='happiness']
 
+    #creating balanced datasets
     sadnessTrain = createBalancedTestSet(sadness, 1000)
     joyTrain = createBalancedTestSet(joy, 1000)
     neutralNTrain = createBalancedTestSet(neutral, 1000)
@@ -45,11 +64,13 @@ if __name__ == '__main__':
     angerTrain = createBalancedTestSet(anger, 1000)
     happinessTrain = createBalancedTestSet(happiness, 1000)
 
+    #saving one big balanced dataset
     everything = [sadnessTrain, joyTrain, neutralNTrain, worryTrain, 
                   surpriseNTrain, loveTrain, angerTrain, happinessTrain]
     theDF = pd.concat(everything)
     theDF.to_csv('text_emotionBalanced.csv')
 
+    #creating balanced dataset, one being positive, one negative
     sadnessTrain = createBalancedTestSet(sadness, 1000)
     joyTrain = createBalancedTestSet(joy, 2000)
     neutralNTrain = createBalancedTestSet(neutral, 1000)
@@ -61,8 +82,10 @@ if __name__ == '__main__':
     angerTrain = createBalancedTestSet(anger, 1000)
     happinessTrain = createBalancedTestSet(happiness, 2000)
 
-    negatives = [sadnessTrain, neutralNTrain, worryTrain, surpriseNTrain, angerTrain]
-    positives = [joyTrain, neutralPTrain, surprisePTrain, loveTrain, happinessTrain]
+    negatives = [sadnessTrain, neutralNTrain, worryTrain, surpriseNTrain,
+                 angerTrain]
+    positives = [joyTrain, neutralPTrain, surprisePTrain, loveTrain, 
+                 happinessTrain]
     negativeDF = pd.concat(negatives)
     positiveDF = pd.concat(positives)
 
