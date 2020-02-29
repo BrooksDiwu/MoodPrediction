@@ -313,3 +313,11 @@ class MoodClassifier2(object):
                 moodPredictions.append(self.sent[np.argmax(pred)])
         
         return moodPredictions
+
+if __name__ == '__main__':
+    import sys
+    classifier = MoodClassifier2()
+    classifier.fitRNNFastLoad('Logistic_model.pkl', 'Logistic_polar_model.pkl'
+                              , 'overallRNN2.h5')
+    text = pd.Series(sys.argv[1])
+    print(classifier.predict(text)[0])

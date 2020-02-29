@@ -151,7 +151,7 @@ if __name__ == '__main__':
     Xtrain, Xtest, Ytrain, Ytest = train_test_split(textVector, y, 
                                                     test_size = 0.25)
     model.fit(Xtrain, Ytrain, epochs=5, batch_size=32, verbose=1)
-    model.save('overallRNN.h5')
+    model.save('overallRNN2.h5')
 
     #get accuracy
     preds = model.predict(Xtest)
