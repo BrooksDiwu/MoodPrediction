@@ -250,8 +250,8 @@ class PolarityClassifier(object):
         return preds
 
 if __name__ == '__main__':
-    
-    dataPolar = readCSV('text_polarity.csv',True)
+
+    dataPolar = readCSV('./data/text_polarity.csv',True)
     polar = PolarityClassifier()
     polar.fit(dataPolar, 5, 0)
 

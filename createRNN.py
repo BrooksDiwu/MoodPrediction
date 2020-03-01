@@ -140,7 +140,7 @@ def createModel():
 
 if __name__ == '__main__':
     
-    data = pd.read_csv('text_emotionBal.csv')
+    data = pd.read_csv('./data/text_emotionBal.csv')
     #vectorizing data
     cleanData(data, 'content')
     textVector = createTokenizer(data['content'].values)

@@ -368,9 +368,9 @@ class MoodClassifier(object):
     
 if __name__ == '__main__':
     
-    dataPositive = readCSV('text_emotion_positive.csv')
-    dataNegative = readCSV('text_emotion_negative.csv')
-    dataPolar = readCSV('text_polarity.csv',True)
+    dataPositive = readCSV('./data/text_emotion_positive.csv')
+    dataNegative = readCSV('./data/text_emotion_negative.csv')
+    dataPolar = readCSV('./data/text_polarity.csv',True)
     mood = MoodClassifier()
     moodB.fitBalanced(dataPolar, 5, 0, dataPositive, dataNegative,
                       'content', 'sentiment')

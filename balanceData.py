@@ -40,9 +40,9 @@ def createBalancedTestSet(data, n):
 
 if __name__ == '__main__':
     
-    data = pd.read_csv('text_emotion.csv')
+    data = pd.read_csv('./data/text_emotion.csv')
     data['sentiment'] = data['sentiment'].apply(lambda x: groupMoods(x))
-    data.to_csv('text_emotionBal.csv') #grouped moods
+    data.to_csv('./data/text_emotionBal.csv') #grouped moods
 
     #getting all data of each mood
     sadness = data[data['sentiment']=='sadness']
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     everything = [sadnessTrain, joyTrain, neutralNTrain, worryTrain, 
                   surpriseNTrain, loveTrain, angerTrain, happinessTrain]
     theDF = pd.concat(everything)
-    theDF.to_csv('text_emotionBalanced.csv')
+    theDF.to_csv('./data/text_emotionBalanced.csv')
 
     #creating balanced dataset, one being positive, one negative
     sadnessTrain = createBalancedTestSet(sadness, 1000)
@@ -89,5 +89,5 @@ if __name__ == '__main__':
     negativeDF = pd.concat(negatives)
     positiveDF = pd.concat(positives)
 
-    negativeDF.to_csv('text_emotion_negative.csv')
-    positiveDF.to_csv('text_emotion_positive.csv')
+    negativeDF.to_csv('./data/text_emotion_negative.csv')
+    positiveDF.to_csv('./data/text_emotion_positive.csv')
