@@ -53,5 +53,17 @@ We train a logistic regression model on this data and get a roc curve that looks
 
 When using logistic regression on the polarity data we get an accuracy of about 77%, recall of about 80%, and precision of about 76%.  
 
-After creating both a model to determine the polarity and then 2 models to determine the mood after the polarity is determined, we can run the classifier.  
-The classifier outputs an accuracy and recall of about 40% and precision of about 37%, showing we have successfully doubled the effectiveness of our predictor. If we increase the number of moods it can predict it outputs an accuracy of about 50% when predicting 2 moods.  
+After creating both a model to determine the polarity and then 2 models to determine the mood after the polarity is determined, we can run the MoodClassifier.  
+The classifier outputs an accuracy and recall of about 35% and precision of about 33%, showing we have successfully doubled the effectiveness of our predictor. If we increase the number of moods it can predict it outputs an accuracy of about 50% when predicting 2 moods.  
+
+We then try running MoodClassifier2 and end up with a confusion matrix like this:
+![a](/plots/confusionmtx2.png)
+
+and find that MoodClassifier2 gets an accuracy of around 40% with recall and precision also around 40%, improving our model a little.
+
+To reproduce these results the user can should run the python files in this order:
+1. Run balanceData.py
+2. Run PolarityClassifier.py
+3. Run MoodClassifier.py
+4. Run createRNN.py
+5. Run MoodClassifier2.py with the text you want to predict.
