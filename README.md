@@ -1,13 +1,25 @@
 # MoodPrediction
 
+## MoodClassifier.py
+This file includes the classifier class for the mood prediction. It includes a fit function and two different predict and score functions, either predicting one mood or predicting the top n moods. The file also includes a main that runs and pickles the classifier to be used later.
+
+## MoodClassifier2.py
+This file includes an improved classifier class for mood prediction. It has a fit and predict function that combines the use of the MoodClassifier classifier as well as a RNN to predict the mood of a text. It includes a main that takes in a line of text and will output a mood.
+
+## PolarityClassifier.py
+This file includes the classifier that tells the polarity of a certain piece of text. It is used to create the MoodClassifier class. The main pickles the polarity classifier.
+
+## balanceData.py
+This file includes the code to balance and split all the data. Run the main to get 4 different CSVs used by the classifiers.
+
+## createRNN.py
+This file is used to create the RNN using the data. The main will save the rnn into a file called 'overallRNN.h5'.
+
 ## EDA.ipynb
 This notebook is used to explore the sentiment data and test different classifiers.
 
 ## EDA2.ipynb
 This notebook is used to explore the polarity data and test different classifiers.
-
-## MoodClassifier.py
-This file includes the classifier class for the mood prediction. It includes a fit function and two different predict and score functions, either predicting one mood or predicting the top n moods.
 
 ## Predictor.ipynb
 This notebook is used to test out the predictor by putting it through the polarity classifier and then the sentiment classifier.
