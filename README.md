@@ -61,7 +61,7 @@ We then try running MoodClassifier2 and end up with a confusion matrix like this
 
 and find that MoodClassifier2 gets an accuracy of around 40% with recall and precision also around 40%, improving our model a little.
 
-To reproduce these results the user can should run the python files in this order:
+To reproduce these results download the data as 'text_emotion.csv' for the emotions and 'text_polarity.csv' for the polarities. Then user should run the python files in this order:
 1. Run balanceData.py
 2. Run PolarityClassifier.py
 3. Run MoodClassifier.py
