@@ -1,5 +1,7 @@
 # MoodPrediction
 
+# src Folder
+
 ## MoodClassifier.py
 This file includes the classifier class for the mood prediction. It includes a fit function and two different predict and score functions, either predicting one mood or predicting the top n moods. The file also includes a main that runs and pickles the classifier to be used later.
 
@@ -15,6 +17,8 @@ This file includes the code to balance and split all the data. Run the main to g
 ## createRNN.py
 This file is used to create the RNN using the data. The main will save the rnn into a file called 'overallRNN.h5'.
 
+# notebooks Folder
+
 ## EDA.ipynb
 This notebook is used to explore the sentiment data and test different classifiers.
 
@@ -26,9 +30,6 @@ This notebook is used to test out the predictor by putting it through the polari
 
 ## PredictorFunction.ipynb
 This notebook is the predictor notebook but with everything turned into a function. All of this is combined to create the MoodClassifier class.
-
-## testClass.ipynb
-This notebook is used to test the MoodClassifier.
 
 ## The Process
 The first thing we do is load the data, which is taken from https://www.kaggle.com/kazanova/sentiment140 for the polarity and https://www.kaggle.com/c/sa-emotions for the mood.
